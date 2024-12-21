@@ -1,29 +1,34 @@
 import express from 'express';
 import cors from 'cors';
 import registerRoute from './routes/register';
-import loginRoute from './routes/authenticate';
-import refreshRoute from './routes/refresh';
-import logoutRoute from './routes/logout';
+import authenticateRoute from './routes/authenticate';
 import postsRoute from './routes/posts';
 import cookieParser from 'cookie-parser';
+import { trpcMiddleware } from './routers/express-trpc';
+
 
 const app = express();
+
 const port = 5000;
 
-app.use(express.json());
-
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:5173',
   methods: 'GET,POST',
+  credentials: true,
 }));
 
 app.use(cookieParser());
 
-app.use('/register', registerRoute);
-app.use('/login', loginRoute);
-app.use('/refresh', refreshRoute);
-app.use('/logout', logoutRoute);
-app.use('/posts', postsRoute);
+app.use(express.json());
+
+app.use(
+  '/trpc',
+  trpcMiddleware,
+);
+
+// app.use('/register', registerRoute);
+// app.use('/authenticate', authenticateRoute);
+// app.use('/posts', postsRoute);
 
 app.get('/', (req, res) => {
   res.send('Hello from backend!');

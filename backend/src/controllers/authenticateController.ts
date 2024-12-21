@@ -1,35 +1,31 @@
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import prisma from '../prisma/client';
+import { TRPCError } from '@trpc/server';
 
-const prisma = new PrismaClient();
-
-export const authenticateUser = async (req: Request, res: Response) => {
+export const authenticateUser = async (name: string, password: string) => {
     try {
-        const {name, password} : {name : string, password : string} = req.body;
-
         const user = await prisma.user.findUnique({
             where: {
                 username : name,
             },
-        })
+        });
 
-        if(user){
+        if (user) {
             const result = await bcrypt.compare(password, user.password);
 
             if(result) {
                 const accessToken = jwt.sign(
-                    {"username": user.username},
+                    { "username": user.username },
                     process.env.ACCESS_TOKEN_SECRET!,
-                    {expiresIn: '1m'}
+                    { expiresIn: '2h' }
                 );
 
                 const refreshToken = jwt.sign(
-                    {"username": user.username},
+                    { "username": user.username },
                     process.env.REFRESH_TOKEN_SECRET!,
-                    {expiresIn: '5d'}
+                    { expiresIn: '60d' }
                 );
 
                await prisma.user.update({
@@ -42,21 +38,19 @@ export const authenticateUser = async (req: Request, res: Response) => {
                });
 
                 console.log('The user is authenticated!');
-                res.cookie('jwt', refreshToken, {httpOnly: true, maxAge: 24 * 60 * 60 * 1000});
-                res.json({ accessToken });
-                //res.status(201).send('The user is authenticated!');
+                return { accessToken, refreshToken };
             }
             else { 
                 console.log('Wrong password!');
-                res.status(400).send('Wrong password!');
+                throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Wrong password' }); 
             }
         }
         else {
             console.log('There is no user with that username!');
-            res.status(400).send('There is no user with that username!');
+            throw new TRPCError({ code: 'UNAUTHORIZED', message: 'There is no user with that username!' });
         }
     } catch (err) {
         console.error('Error authenticating user: ', err);
-        res.status(500).send('Internal server error');
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error'});
     }
 }

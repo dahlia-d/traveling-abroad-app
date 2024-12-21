@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import 'dotenv/config';
-
-const prisma = new PrismaClient();
+import prisma from '../prisma/client';
+import { TRPCError } from '@trpc/server';
 
 export const logout = async (req: Request, res: Response) => {
     try{
         const cookies = req.cookies;
-        if(!cookies?.jwt) res.sendStatus(204);
+        if(!cookies?.jwt) throw new TRPCError({ code: 'FORBIDDEN' });
 
         const refreshToken = cookies.jwt;
 
@@ -29,15 +28,13 @@ export const logout = async (req: Request, res: Response) => {
 
             console.log(user.refresh_token);
 
-            res.clearCookie('jwt', { httpOnly: true })
-            res.sendStatus(204);
+            res.clearCookie('jwt', { httpOnly: true });
         }
         else {
-            res.clearCookie('jwt', { httpOnly: true })
-            res.sendStatus(204);
+            res.clearCookie('jwt', { httpOnly: true });
         }
     } catch (err) {
         console.error(err);
-        res.status(500).send('Internal server error');
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error'});
     }
 }

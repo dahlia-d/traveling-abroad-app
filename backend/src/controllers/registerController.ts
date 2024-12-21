@@ -1,17 +1,11 @@
-import {Request, Response} from 'express';
-import { PrismaClient } from '@prisma/client';
-import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import prisma from '../prisma/client';
+import { TRPCError } from '@trpc/server';
 
-const prisma = new PrismaClient();
 
-export const registerUser = async (req : Request, res: Response) => {
+export const registerUser = async (name: string, password: string) => { 
     try {
-    
-        const {name, password} : {name: string, password: string} = req.body;
-
         const user = await prisma.user.findUnique({
             where: {
                 username: name
@@ -29,20 +23,15 @@ export const registerUser = async (req : Request, res: Response) => {
                     password: hashedPassword
                 }
             });
-
-            res.status(201).send('New user is registered!');
+            
             console.log('New user is registered!');
         }
         else {
             console.log('User with this name already exist!');
-            res.status(400).send('User with this name already exist!');
+            throw new TRPCError({ code: 'CONFLICT', message: 'User with this name already exist!' });
         }
-
-        //const allUsers = await  prisma.user.findMany();
-        //console.dir(allUsers, {depth : null});
-
     } catch (err) {
         console.error('Error registering user: ', err);
-        res.status(500).send('Internal server error');
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error'});
     }
 }

@@ -1,16 +1,14 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import prisma from '../prisma/client';
+import { TRPCError } from '@trpc/server';
 
-const prisma = new PrismaClient(); 
-
-export const refreshToken = async (req : Request, res : Response) => {
+export const refreshToken = async (req : Request, res : Response) => { 
     try {
         const cookies = req.cookies;
         if(!cookies?.jwt) {
-            res.sendStatus(401);
-            return;
+            throw new TRPCError({ code: 'FORBIDDEN' });
         }
 
         const refreshToken : string = cookies.jwt;
@@ -21,29 +19,29 @@ export const refreshToken = async (req : Request, res : Response) => {
                 refresh_token: refreshToken,
             }
         });
-
+        
         if(user) {
             jwt.verify(
                 refreshToken, 
                 process.env.REFRESH_TOKEN_SECRET!, 
                 (err, docoded) => {
-                    if(err) res.status(402).send('Invalid token');
+                    if(err) new TRPCError({ code: 'FORBIDDEN', message: 'Invalid token' });;
                     const accessToken = jwt.sign(
                         { 'username' : user.username }, 
                         process.env.ACCESS_TOKEN_SECRET!, 
                         {expiresIn: '1m'}
                     );
                     console.log('New access token');
-                    res.json({ accessToken });
+                    return accessToken;
                 }
             );
         } 
         else {
-            res.status(403).send('Invalid token');
+            new TRPCError({ code: 'FORBIDDEN', message: 'Invalid token' });
         }
     } catch (err) {
         console.error(err);
-        res.status(500).send('Internal srever error!');
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error'});
     }  
 
 }
