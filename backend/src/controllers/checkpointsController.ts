@@ -1,10 +1,28 @@
 import axios from "axios";
 import { DistanceMatrixResponse } from "../types";
+import prisma from '../prisma/client';
+import { Decimal } from "@prisma/client/runtime/library";
 
-export const gatherTrafficData = async (latitude_from: number, longitude_from: number, latitude_to: number, longitude_to: number, dateTime: Date) => {
-    const departureTime = Math.round(dateTime.getTime() / 1000);
+const fetchCheckpointCoordinates = async (name: string) => {
 
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?departure_time=${departureTime}&destinations=${latitude_to}%2C${longitude_to}&origins=${latitude_from}%2C${longitude_from}&units=imperial&key=${process.env.API_KEY}`;
+    const checkpoint = await prisma.checkpoint.findUnique({
+        where: {
+            name: name,
+        }
+    });
+
+    if (checkpoint) {
+        const coordinates = [checkpoint.latitudeFrom, checkpoint.longitudeFrom, checkpoint.longitudeTo, checkpoint.latitudeTo];
+        return coordinates;
+    }
+
+    return null;
+}
+
+export const fetchTrafficData = async ([latitudeFrom, longitudeFrom, latitudeTo, longitudeTo]: Decimal[], departureTime: Date): Promise<number> => {
+    const departureTimeSeconds = Math.round(departureTime.getTime() / 1000);
+
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?departure_time=${departureTimeSeconds}&destinations=${latitudeTo}%2C${longitudeTo}&origins=${latitudeFrom}%2C${longitudeFrom}&units=imperial&key=${process.env.API_KEY}`;
 
     console.log(url);
 
@@ -12,7 +30,25 @@ export const gatherTrafficData = async (latitude_from: number, longitude_from: n
     const result: DistanceMatrixResponse = responce.data;
 
     console.log(responce.data);
-    console.log(result.rows[0].elements[0].duration_in_traffic);
+    console.log(result.rows[0].elements[0].durationInTraffic);
 
-    return result.rows[0].elements[0].duration_in_traffic.value;
+    return result.rows[0].elements[0].durationInTraffic.value;
+}
+
+export const gatherTrafficDataForAllCheckpoints = async () => {
+    const checkpoints = await prisma.checkpoint.findMany();
+
+    for (let i = 0; i < checkpoints.length; i++) {
+        let coordiates = await fetchCheckpointCoordinates(checkpoints[i].name);
+        if (coordiates) {
+            let durationInTraffic = await fetchTrafficData(coordiates, new Date());
+            const data = await prisma.checkpointTrafficData.create({
+                data: {
+                    checkpointId: checkpoints[i].id,
+                    timestamp: new Date(),
+                    durationInTraffic: durationInTraffic
+                }
+            });
+        }
+    }
 }
