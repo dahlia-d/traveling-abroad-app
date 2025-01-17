@@ -1,11 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import registerRoute from './routes/register';
-import authenticateRoute from './routes/authenticate';
-import postsRoute from './routes/posts';
 import cookieParser from 'cookie-parser';
 import { trpcMiddleware } from './routers/express-trpc';
-
+import { gatherTrafficDataForAllCheckpoints } from './controllers/checkpointsController';
+import cron from 'node-cron';
 
 const app = express();
 
@@ -26,9 +24,9 @@ app.use(
   trpcMiddleware,
 );
 
-// app.use('/register', registerRoute);
-// app.use('/authenticate', authenticateRoute);
-// app.use('/posts', postsRoute);
+cron.schedule('*/15 * * * *', async () => {
+  await gatherTrafficDataForAllCheckpoints();
+});
 
 app.get('/', (req, res) => {
   res.send('Hello from backend!');
