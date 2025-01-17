@@ -22,6 +22,8 @@ model Country {
   id    Int    @id @default(autoincrement())
   name  String @unique @db.VarChar(255)
   posts Post[] @relation("PostCountries")
+  fromCheckpoints Checkpoint[] @relation("FromCountry")
+  toCheckpoints   Checkpoint[] @relation("ToCountry")
 }
 
 model Category {
@@ -36,4 +38,26 @@ model User {
   refresh_token String? @unique
   username      String  @unique @db.VarChar(255)
   Post          Post[]
+}
+
+model Checkpoint {
+  id Int @id @default(autoincrement())
+  name String @unique @db.VarChar(255)
+  fromCountryId Int
+  fromCountry Country @relation("FromCountry", fields: [fromCountryId], references: [id])
+  toCountryId Int
+  toCountry Country @relation("ToCountry", fields: [toCountryId], references: [id])
+  latitudeFrom Decimal 
+  longitudeFrom Decimal
+  latitudeTo Decimal
+  longitudeTo Decimal
+  checkpointTrafficData CheckpointTrafficData[] @relation("CheckpointTrafficData")
+}
+
+model CheckpointTrafficData {
+  id Int @id @default(autoincrement())
+  checkpointId Int
+  checkpoint Checkpoint @relation("CheckpointTrafficData", fields: [checkpointId], references: [id])
+  timestamp DateTime
+  durationInTraffic Int
 }
