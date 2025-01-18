@@ -1,4 +1,4 @@
-import { router, publicProcedure } from "../trpc";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
 import z from 'zod';
 import { refreshToken } from "../../controllers/refreshTokenController";
 import { authenticateUser } from "../../controllers/authenticateController";
@@ -12,20 +12,20 @@ export const authenticateRouter = router({
                 password: z.string()
             })
         )
-        .mutation( async ({input, ctx}) => {
-            const { accessToken, refreshToken } : { accessToken: string, refreshToken: string } = await authenticateUser(input.username, input.password);
+        .mutation(async ({ input, ctx }) => {
+            const { accessToken, refreshToken }: { accessToken: string, refreshToken: string } = await authenticateUser(input.username, input.password);
             ctx.res.cookie('jwt', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
             ctx.res.cookie('jwt_access', accessToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
-            //ctx.res.header(accessToken);// как да изпратя тъпия токе към фротеда с трпс
         }),
 
-    logout: publicProcedure //TODO authorize procedure
-        .mutation( async ({ctx}) => {
+    logout: protectedProcedure
+        .mutation(async ({ ctx }) => {
             logout(ctx.req, ctx.res);
         }),
 
-    refresh: publicProcedure //TODO authorize procedure
-        .mutation( async ({ctx}) => {
-            refreshToken(ctx.req, ctx.res);
+    refresh: publicProcedure
+        .mutation(async ({ ctx }) => {
+            const accessToken = await refreshToken(ctx.req);
+            ctx.res.cookie('jwt_access', accessToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
         })
 });

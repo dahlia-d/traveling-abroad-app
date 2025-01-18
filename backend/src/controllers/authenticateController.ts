@@ -8,14 +8,14 @@ export const authenticateUser = async (name: string, password: string) => {
     try {
         const user = await prisma.user.findUnique({
             where: {
-                username : name,
+                username: name,
             },
         });
 
         if (user) {
             const result = await bcrypt.compare(password, user.password);
 
-            if(result) {
+            if (result) {
                 const accessToken = jwt.sign(
                     { "username": user.username },
                     process.env.ACCESS_TOKEN_SECRET!,
@@ -28,21 +28,21 @@ export const authenticateUser = async (name: string, password: string) => {
                     { expiresIn: '60d' }
                 );
 
-               await prisma.user.update({
-                where: {
-                    id: user.id,
-                },
-                data: {
-                    refresh_token: refreshToken,
-                }
-               });
+                await prisma.user.update({
+                    where: {
+                        id: user.id,
+                    },
+                    data: {
+                        refresh_token: refreshToken,
+                    }
+                });
 
                 console.log('The user is authenticated!');
                 return { accessToken, refreshToken };
             }
-            else { 
+            else {
                 console.log('Wrong password!');
-                throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Wrong password' }); 
+                throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Wrong password' });
             }
         }
         else {
@@ -51,6 +51,6 @@ export const authenticateUser = async (name: string, password: string) => {
         }
     } catch (err) {
         console.error('Error authenticating user: ', err);
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error'});
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Internal server error' });
     }
 }
