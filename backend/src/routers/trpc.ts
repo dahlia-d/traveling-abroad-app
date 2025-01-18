@@ -1,27 +1,35 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import * as trpcExpress from '@trpc/server/adapters/express';
-import { verifyJWT } from '../middleware/verifyJWT';
-import { ZodError } from 'zod';
+import { initTRPC, TRPCError } from "@trpc/server";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { verifyJWT } from "../middleware/verifyJWT";
+import { ZodError } from "zod";
+import prisma from "../prisma/client";
+import { User } from "@prisma/client";
 
-// created for each request
 export const createContext = async ({
 	req,
 	res,
 }: trpcExpress.CreateExpressContextOptions) => {
-
-	const user = await verifyJWT(req);
+	const username = await verifyJWT(req);
+	let user: User | null = null;
+	if (username) {
+		user = await prisma.user.findUnique({
+			where: {
+				username: username
+			}
+		});
+	}
 
 	return {
 		req,
 		res,
-		user
-	}
+		user,
+	};
 };
 
 type Context = Awaited<ReturnType<typeof createContext>>;
 
 const t = initTRPC.context<Context>().create({
-	errorFormatter(opts) { //?????
+	errorFormatter(opts) {
 		const { shape, error } = opts;
 
 		console.log("ERROR caught: ", { shape, error });
@@ -31,7 +39,7 @@ const t = initTRPC.context<Context>().create({
 			data: {
 				...shape.data,
 				zodError:
-					error.code === 'BAD_REQUEST' && error.cause instanceof ZodError
+					error.code === "BAD_REQUEST" && error.cause instanceof ZodError
 						? error.cause.flatten()
 						: null,
 			},
@@ -40,6 +48,7 @@ const t = initTRPC.context<Context>().create({
 });
 
 export const router = t.router;
+export const { createCallerFactory } = t;
 
 export const publicProcedure = t.procedure;
 
@@ -47,12 +56,12 @@ export const protectedProcedure = t.procedure.use(
 	async function isAuthed(opts) {
 		const { ctx } = opts;
 		if (!ctx.user) {
-			throw new TRPCError({ code: 'UNAUTHORIZED' });
+			throw new TRPCError({ code: "UNAUTHORIZED" });
 		}
 		return opts.next({
 			ctx: {
 				user: ctx.user,
 			},
 		});
-	},
-)
+	}
+);

@@ -31,7 +31,8 @@ export const getPosts = async (categories: Category[], countries: Country[]) => 
         where: whereCondition,
         include: {
             categories: true,
-            countries: true
+            countries: true,
+            User: true
         }
     });
 
@@ -39,64 +40,41 @@ export const getPosts = async (categories: Category[], countries: Country[]) => 
 }
 
 
-export const getUserPosts = async (username: string) => {
+export const getUserPosts = async (userId: number) => {
     console.log('User posts');
-    const user = await prisma.user.findUnique({
+
+    const posts = prisma.post.findMany({
         where: {
-            username: username,
+            authorId: userId,
         }
-    });
+    })
 
-    if (user) {
-        const posts = prisma.post.findMany({
-            where: {
-                authorId: user.id,
-            }
-        })
-
-        console.log(posts);
-        return posts;
-    }
-    else {
-        console.log('User not found!')
-        return null;
-    }
+    console.log(posts);
+    return posts;
 };
 
-export const publishPost = async (title: string, content: string, username: string, categories?: Category[], countries?: Country[]) => {
+export const publishPost = async (title: string, content: string, userId: number, categories?: Category[], countries?: Country[]) => {
     console.log(title, content);
-    const user = await prisma.user.findUnique({
-        where: {
-            username: username,
+    const newPost = await prisma.post.create({
+        data: {
+            title: title,
+            createdAt: new Date(),
+            content: content,
+            authorId: userId,
+            categories: {
+                connect: categories?.map((category) => ({ id: category.id }))
+            },
+            countries: {
+                connect: countries?.map((country) => ({ id: country.id }))
+            }
+        },
+        include: {
+            categories: true,
+            countries: true
         }
     });
-
-    if (user) {
-        const newPost = await prisma.post.create({
-            data: {
-                title: title,
-                createdAt: new Date(),
-                content: content,
-                authorId: user.id,
-                categories: {
-                    connect: categories?.map((category) => ({ id: category.id }))
-                },
-                countries: {
-                    connect: countries?.map((country) => ({ id: country.id }))
-                }
-            },
-            include: {
-                categories: true,
-                countries: true
-            }
-        });
-        console.log('Published: ', newPost.title);
-        return newPost;
-    }
-    else {
-        console.log('User not found!')
-        return null;
-    }
+    console.log('Published: ', newPost.title);
+    return newPost;
 };
 
 export const getFilters = async () => {

@@ -1,4 +1,4 @@
-import { getFilters, getUserPosts, publishPost } from '../../controllers/postsController';
+import { getFilters, getPosts, getUserPosts, publishPost } from '../../controllers/postsController';
 import { protectedProcedure, publicProcedure, router } from '../trpc';
 import { z } from 'zod';
 import { Country, Category } from '@prisma/client';
@@ -33,5 +33,24 @@ export const postsRouter = router({
     getFilters: publicProcedure
         .query(async () => {
             return await getFilters();
+        }),
+    getPosts: publicProcedure
+        .input(
+            z.object({
+                categories: z.array(
+                    z.object({
+                        id: z.number(),
+                        name: z.string()
+                    })
+                ),
+                countries: z.array(
+                    z.object({
+                        id: z.number(),
+                        name: z.string()
+                    })
+                )
+            }))
+        .query(async ({ input }) => {
+            return await getPosts(input.categories, input.countries);
         })
 }); 
