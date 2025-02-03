@@ -57,7 +57,7 @@ model Checkpoint {
 model CheckpointTrafficData {
   id Int @id @default(autoincrement())
   checkpointId Int
-  checkpoint Checkpoint @relation("CheckpointTrafficData", fields: [checkpointId], references: [id])
+  checkpoint Checkpoint @relation("CheckpointTrafficData", fields: [checkpointId], references: [id], onDelete: Cascade)
   timestamp DateTime
   durationInTraffic Int
 }

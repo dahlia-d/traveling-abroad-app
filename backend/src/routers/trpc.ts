@@ -4,6 +4,7 @@ import { verifyJWT } from "../middleware/verifyJWT";
 import { ZodError } from "zod";
 import prisma from "../prisma/client";
 import { User } from "@prisma/client";
+import superjson from 'superjson';
 
 export const createContext = async ({
 	req,
@@ -45,6 +46,7 @@ const t = initTRPC.context<Context>().create({
 			},
 		};
 	},
+	transformer: superjson
 });
 
 export const router = t.router;
