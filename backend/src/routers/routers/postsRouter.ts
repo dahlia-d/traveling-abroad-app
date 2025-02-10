@@ -1,7 +1,6 @@
-import { getFilters, getPosts, getUserPosts, publishPost } from '../../controllers/postsController';
+import { getFilters, getPost, getPosts, getUserPosts, publishPost } from '../../controllers/postsController';
 import { protectedProcedure, publicProcedure, router } from '../trpc';
 import { z } from 'zod';
-import { Country, Category } from '@prisma/client';
 
 export const postsRouter = router({
     createPost: protectedProcedure
@@ -11,24 +10,22 @@ export const postsRouter = router({
                 content: z.string(),
                 categories: z.array(
                     z.object({
-                        id: z.number(),
-                        name: z.string()
+                        id: z.number()
                     })
                 ).optional(),
                 countries: z.array(
                     z.object({
-                        id: z.number(),
-                        name: z.string()
+                        id: z.number()
                     })
                 ).optional()
             })
         )
         .mutation(async ({ input, ctx }) => {
-            await publishPost(input.title, input.content, ctx.user.username, input.categories, input.countries);
+            await publishPost(input.title, input.content, ctx.user.id, input.categories, input.countries);
         }),
     getUserPosts: protectedProcedure
         .mutation(async ({ ctx }) => {
-            return await getUserPosts(ctx.user.username);
+            return await getUserPosts(ctx.user.id);
         }),
     getFilters: publicProcedure
         .query(async () => {
@@ -40,17 +37,25 @@ export const postsRouter = router({
                 categories: z.array(
                     z.object({
                         id: z.number(),
-                        name: z.string()
                     })
                 ),
                 countries: z.array(
                     z.object({
                         id: z.number(),
-                        name: z.string()
-                    })
-                )
+                    }),
+                ),
+                cursor: z.number().nullish()
             }))
         .query(async ({ input }) => {
-            return await getPosts(input.categories, input.countries);
+            return await getPosts(input.categories, input.countries, input.cursor);
+        }),
+    getPost: publicProcedure
+        .input(
+            z.object({
+                postId: z.number()
+            })
+        )
+        .query(async ({ input }) => {
+            return await getPost(input.postId)
         })
 }); 

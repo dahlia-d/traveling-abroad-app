@@ -1,7 +1,7 @@
 import prisma from '../prisma/client';
 import { Category, Country } from '@prisma/client';
 
-export const getPosts = async (categories: Category[], countries: Country[]) => {
+export const getPosts = async (categories: { id: number }[], countries: { id: number }[], cursor: number | undefined | null) => {
 
     const whereCondition: any = {};
 
@@ -28,6 +28,9 @@ export const getPosts = async (categories: Category[], countries: Country[]) => 
     }
 
     const posts = await prisma.post.findMany({
+        take: 6,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: { createdAt: 'asc' },
         where: whereCondition,
         include: {
             categories: true,
@@ -36,7 +39,13 @@ export const getPosts = async (categories: Category[], countries: Country[]) => 
         }
     });
 
-    return posts;
+    let nextCursor: typeof cursor | undefined = undefined;
+    if (posts.length > 5) {
+        const nextPost = posts.pop();
+        nextCursor = nextPost!.id;
+    }
+
+    return { posts, nextCursor };
 }
 
 
@@ -53,7 +62,7 @@ export const getUserPosts = async (userId: number) => {
     return posts;
 };
 
-export const publishPost = async (title: string, content: string, userId: number, categories?: Category[], countries?: Country[]) => {
+export const publishPost = async (title: string, content: string, userId: number, categories?: { id: number }[], countries?: { id: number }[]) => {
     console.log(title, content);
     const newPost = await prisma.post.create({
         data: {
@@ -73,9 +82,21 @@ export const publishPost = async (title: string, content: string, userId: number
             countries: true
         }
     });
-    console.log('Published: ', newPost.title);
     return newPost;
 };
+
+export const getPost = async (id: number) => {
+    const post = await prisma.post.findUnique({
+        where: {
+            id: id
+        },
+        include: {
+            User: true
+        }
+    })
+
+    return post;
+}
 
 export const getFilters = async () => {
     const filters: { categories: Category[] | null, countries: Country[] | null } = { categories: null, countries: null };
