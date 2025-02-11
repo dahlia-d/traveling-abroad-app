@@ -10,7 +10,7 @@ export const registerRouter = router({
                 password: z.string()
             })
         )
-        .mutation( async ({input}) => {
-            registerUser(input.username, input.password);
+        .mutation(async ({ input }) => {
+            await registerUser(input.username, input.password);
         }),
 });

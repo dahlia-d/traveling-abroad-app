@@ -13,19 +13,18 @@ export const authenticateRouter = router({
             })
         )
         .mutation(async ({ input, ctx }) => {
-            const { accessToken, refreshToken }: { accessToken: string, refreshToken: string } = await authenticateUser(input.username, input.password);
-            ctx.res.cookie('jwt', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
-            ctx.res.cookie('jwt_access', accessToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+            await authenticateUser(input.username, input.password, ctx.res);
         }),
-
     logout: protectedProcedure
         .mutation(async ({ ctx }) => {
-            logout(ctx.req, ctx.res);
+            await logout(ctx.req, ctx.res);
         }),
-
     refresh: publicProcedure
         .mutation(async ({ ctx }) => {
-            const accessToken = await refreshToken(ctx.req);
-            ctx.res.cookie('jwt_access', accessToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+            await refreshToken(ctx.req, ctx.res);
+        }),
+    getUser: publicProcedure
+        .query(async ({ ctx }) => {
+            return ctx.user;
         })
 });

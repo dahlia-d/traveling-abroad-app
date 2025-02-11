@@ -9,7 +9,7 @@ import { Login } from "./pages/LoginPage";
 import { Register } from "./pages/RegisterPage";
 import { Posts } from "./pages/PostsPage";
 import { PostDetails } from "./pages/PostDetailsPage";
-import { RefreshToken } from "./refreshTokenComponent";
+import { RefreshToken } from "./components/refreshTokenComponent";
 import { Chart } from "./pages/CheckpointsChartPage";
 import { CheckpointsRealTime } from "./pages/CheckpointsRealTimePage";
 import { Header } from "./components/ui/header";
