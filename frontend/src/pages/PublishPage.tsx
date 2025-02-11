@@ -1,40 +1,70 @@
 import { useState } from "react";
 import { trpc } from "../api";
-import Filters from "../components/ui/filter";
+import { Options } from "@/components/ui/options";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 export const Publish = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [categoryFilters, setCategoryFilters] = useState<{ id: number; name: string; }[]>();
-  const [countryFilters, setCountryFilters] = useState<{ id: number; name: string; }[]>();
+  const [categories, setCategories] = useState<{ id: number }[]>([]);
+  const [countries, setCountries] = useState<{ id: number }[]>([]);
+  const navigate = useNavigate();
 
-  const publish = trpc.posts.createPost.useMutation();
+  const filters = trpc.posts.getFilters.useQuery();
 
-  const handleSubmit = async () => {
-    console.log("Submit");
-    console.log(categoryFilters);
-    console.log(countryFilters);
-    publish.mutate({ title, content, categories: categoryFilters, countries: countryFilters });
+  const publish = trpc.posts.createPost.useMutation({
+    onSuccess: () => {
+      navigate("/");
+    },
+  });
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    publish.mutate({
+      title,
+      content,
+      categories: categories,
+      countries: countries,
+    });
   };
 
+  if (publish.isError) {
+    return (
+      <>
+        <div>The post wasn't created! {publish.error.message}</div>
+      </>
+    );
+  }
+
   return (
-    <form className="form">
-      <h1>Publish</h1>
-      <input
+    <form className="m-10 flex w-screen min-w-96 flex-col gap-3 rounded-sm border-2 border-black bg-white p-10 drop-shadow">
+      <h1 className="text-center text-lg font-bold">Publish</h1>
+      <Input
         type="text"
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <input
-        type="text"
+      <Textarea
+        rows={5}
         placeholder="Content"
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
-      <h1>{categoryFilters && categoryFilters.length > 0 ? categoryFilters[0].name : 'No categories available'}</h1>
-      <Filters setCategoryFilters={setCategoryFilters} setCountryFilters={setCountryFilters} />
-      <button onClick={handleSubmit}>Submit</button>
+      <div className="flex place-items-center items-center justify-center gap-3">
+        <Options
+          options={filters.data?.countries ?? []}
+          setOptions={setCountries}
+        />
+        <Options
+          options={filters.data?.categories ?? []}
+          setOptions={setCategories}
+        />
+      </div>
+      <Button onClick={handleSubmit}>Submit</Button>
     </form>
   );
 };
