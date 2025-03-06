@@ -8,18 +8,15 @@ export const checkpointsRouter = router({
         .input(
             z.object({
                 checkpointId: z.number(),
-                fromDate: z.string(),
-                toDate: z.string()
+                fromDate: z.date(),
+                toDate: z.date(),
             })
         )
         .query(async ({ input }) => {
-            console.log(new Date(input.fromDate), new Date(input.toDate))
-            console.log("getCheckpointTrafficData route")
             return await getCheckpointTrafficData(input.checkpointId, new Date(input.fromDate), new Date(input.toDate));
         }),
     getCheckpoits: publicProcedure
         .query(async () => {
-            console.log("checkpints route");
             return await getCheckpoits();
         }),
     getCheckpointRealTimeTraffic: publicProcedure
@@ -33,6 +30,6 @@ export const checkpointsRouter = router({
             if (coordinates) {
                 return await fetchTrafficData(coordinates, new Date());
             }
-            return null;
+            return null;//error
         })
 })

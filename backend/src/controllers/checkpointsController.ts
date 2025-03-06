@@ -23,10 +23,8 @@ export const fetchTrafficData = async ([latitudeFrom, longitudeFrom, latitudeTo,
 
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?departure_time=${departureTimeSeconds}&destinations=${latitudeTo}%2C${longitudeTo}&origins=${latitudeFrom}%2C${longitudeFrom}&units=imperial&key=${process.env.API_KEY}`;
 
-    console.log(url);
-
-    const responce = await axios.get(url);
-    const result: DistanceMatrixResponse = responce.data;
+    const response = await axios.get(url);
+    const result: DistanceMatrixResponse = response.data;
 
     return result.rows[0].elements[0].duration_in_traffic.value;
 }
@@ -35,9 +33,9 @@ export const gatherTrafficDataForAllCheckpoints = async () => {
     const checkpoints = await prisma.checkpoint.findMany();
 
     for (let i = 0; i < checkpoints.length; i++) {
-        let coordiates = await fetchCheckpointCoordinates(checkpoints[i].id);
-        if (coordiates) {
-            let durationInTraffic = await fetchTrafficData(coordiates, new Date());
+        let coordinates = await fetchCheckpointCoordinates(checkpoints[i].id);
+        if (coordinates) {
+            let durationInTraffic = await fetchTrafficData(coordinates, new Date());
             const data = await prisma.checkpointTrafficData.create({
                 data: {
                     checkpointId: checkpoints[i].id,

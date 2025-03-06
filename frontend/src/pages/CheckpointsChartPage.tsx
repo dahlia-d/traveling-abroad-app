@@ -50,43 +50,42 @@ export const Chart = () => {
         return date;
     });
     const [toDate, setToDate] = useState<Date | undefined>(new Date());
-
     const [checkpoint, setCheckpoint] = useState<{
         id: number;
         name: string;
     } | null>(null);
-
     useEffect(() => {
         if (checkpoints && checkpoint == null) {
             setCheckpoint(checkpoints[0]);
         }
     }, [checkpoints]);
 
-    const chartData = trpc.checkpoints.getCheckpointTrafficData.useQuery(
-        checkpoint && fromDate && toDate
-            ? {
-                  checkpointId: checkpoint.id,
-                  fromDate: fromDate.toDateString(),
-                  toDate: toDate.toDateString(),
-              }
-            : skipToken,
-    ).data;
-    const mapedChartData = chartData?.map((value) => {
-        const date = moment(value.timestamp).valueOf();
-        const durationInTrafficMinutes = Math.round(
-            value.durationInTraffic / 60,
-        );
-        return { timestamp: date, durationInTraffic: durationInTrafficMinutes };
-    });
-
-    if (!checkpointsOptions || !mapedChartData || isPending) {
-        return <Loading />;
-    }
-
+    const chartData = trpc.checkpoints.getCheckpointTrafficData
+        .useQuery(
+            checkpoint && fromDate && toDate
+                ? {
+                      checkpointId: checkpoint.id,
+                      fromDate: fromDate,
+                      toDate: new Date(toDate.getTime() + 24 * 60 * 60 * 1000),
+                  }
+                : skipToken,
+        )
+        .data?.map((value) => {
+            const date = moment(value.timestamp).valueOf();
+            const durationInTrafficMinutes = Math.round(
+                value.durationInTraffic / 60,
+            );
+            return {
+                timestamp: date,
+                durationInTraffic: durationInTrafficMinutes,
+            };
+        });
     if (isError) {
         return <Error />;
     }
-
+    if (!checkpointsOptions || !chartData || isPending) {
+        return <Loading />;
+    }
     return (
         <div className="flex h-[80vh] w-full flex-col gap-3 pr-3">
             <div className="flex flex-row justify-end gap-3">
@@ -104,8 +103,9 @@ export const Chart = () => {
                         ...theme,
                         colors: {
                             ...theme.colors,
-                            primary25: "hsl(240 4.8% 95.9%)",
-                            primary: "black",
+                            primary: "hsl(var(--primary))",
+                            primary25: "hsl(var(--secondary))",
+                            primary50: "hsl(var(--secondary))",
                         },
                     })}
                 ></Select>
@@ -120,7 +120,7 @@ export const Chart = () => {
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="">
+                    <PopoverContent className="m-0 p-0">
                         <Calendar
                             mode="single"
                             selected={fromDate}
@@ -142,7 +142,7 @@ export const Chart = () => {
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent>
+                    <PopoverContent className="m-0 p-0">
                         <Calendar
                             mode="single"
                             selected={toDate}
@@ -156,7 +156,7 @@ export const Chart = () => {
                 config={chartConfig}
                 className="min-h-6 w-full flex-grow"
             >
-                <LineChart data={mapedChartData ? mapedChartData : []}>
+                <LineChart data={chartData ? chartData : []}>
                     <CartesianGrid vertical={false} />
                     <XAxis
                         type="number"

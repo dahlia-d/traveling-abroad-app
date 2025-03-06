@@ -15,16 +15,16 @@ export const registerUser = async (name: string, password: string) => {
         throw new TRPCError({ code: 'CONFLICT', message: 'User with this name already exist!' });
     }
 
-        const saltRounds = 10;
-        const salt = await bcrypt.genSalt(saltRounds);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-        user = await prisma.user.create({
-            data: {
-                username: name,
-                password: hashedPassword
-            }
-        });
+    user = await prisma.user.create({
+        data: {
+            username: name,
+            password: hashedPassword
+        }
+    });
 
-        return user;
+    return user;
 }

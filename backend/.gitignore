@@ -1,2 +1,5 @@
 node_modules
 .env
+src/routers/__test
+prisma/dbml
+jest.config.ts

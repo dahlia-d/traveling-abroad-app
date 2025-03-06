@@ -11,7 +11,6 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     const refreshToken: string = cookies.jwt;
-    console.log({ 'Refresh token: ': refreshToken })
 
     const user = await prisma.user.findUnique({
         where: {
@@ -20,7 +19,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Invalid token' })
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Invalid token' });
     }
 
     jwt.verify(

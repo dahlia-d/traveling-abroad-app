@@ -4,40 +4,40 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL")
 }
 
 model Post {
-  id         Int        @id @default(autoincrement())
-  title      String     @db.VarChar(255)
-  createdAt  DateTime   @default(now()) @db.Timestamp(6)
-  content    String?
-  authorId   Int
-  User       User       @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id Int @id @default(autoincrement())
+  title String @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  content String?
+  authorId Int
+  User User @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   categories Category[] @relation("PostCategories")
-  countries  Country[]  @relation("PostCountries")
+  countries Country[] @relation("PostCountries")
 }
 
 model Country {
-  id    Int    @id @default(autoincrement())
-  name  String @unique @db.VarChar(255)
+  id Int @id @default(autoincrement())
+  name String @unique @db.VarChar(255)
   posts Post[] @relation("PostCountries")
   fromCheckpoints Checkpoint[] @relation("FromCountry")
-  toCheckpoints   Checkpoint[] @relation("ToCountry")
+  toCheckpoints Checkpoint[] @relation("ToCountry")
 }
 
 model Category {
-  id    Int    @id @default(autoincrement())
-  name  String @unique @db.VarChar(255)
+  id Int @id @default(autoincrement())
+  name String @unique @db.VarChar(255)
   posts Post[] @relation("PostCategories")
 }
 
 model User {
-  password      String  @db.VarChar(255)
-  id            Int     @id @default(autoincrement())
+  password String  @db.VarChar(255)
+  id Int @id @default(autoincrement())
   refresh_token String? @unique
-  username      String  @unique @db.VarChar(255)
-  Post          Post[]
+  username String @unique @db.VarChar(255)
+  Post Post[]
 }
 
 model Checkpoint {

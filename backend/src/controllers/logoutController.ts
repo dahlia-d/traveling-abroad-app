@@ -29,8 +29,6 @@ export const logout = async (req: Request, res: Response) => {
         }
     })
 
-    console.log('refresh token - null: ', user.refresh_token);
-
     res.clearCookie('jwt_access', { httpOnly: true });
     res.clearCookie('jwt', { httpOnly: true });
 }

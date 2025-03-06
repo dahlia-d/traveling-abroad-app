@@ -33,7 +33,6 @@ const t = initTRPC.context<Context>().create({
 	errorFormatter(opts) {
 		const { shape, error } = opts;
 
-		console.log("ERROR caught: ", { shape, error });
 
 		return {
 			...shape,

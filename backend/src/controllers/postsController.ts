@@ -6,7 +6,6 @@ export const getPosts = async (categories: { id: number }[], countries: { id: nu
     const whereCondition: any = {};
 
     if (categories?.length > 0) {
-        console.log(`Categories: ${categories}`);
         whereCondition.categories = {
             some: {
                 id: {
@@ -17,7 +16,6 @@ export const getPosts = async (categories: { id: number }[], countries: { id: nu
     }
 
     if (countries?.length > 0) {
-        console.log(`Countries: ${countries}`);
         whereCondition.countries = {
             some: {
                 id: {
@@ -30,7 +28,7 @@ export const getPosts = async (categories: { id: number }[], countries: { id: nu
     const posts = await prisma.post.findMany({
         take: 6,
         cursor: cursor ? { id: cursor } : undefined,
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
         where: whereCondition,
         include: {
             categories: true,
@@ -50,7 +48,6 @@ export const getPosts = async (categories: { id: number }[], countries: { id: nu
 
 
 export const getUserPosts = async (userId: number) => {
-    console.log('User posts');
 
     const posts = prisma.post.findMany({
         where: {
@@ -58,12 +55,10 @@ export const getUserPosts = async (userId: number) => {
         }
     })
 
-    console.log(posts);
     return posts;
 };
 
 export const publishPost = async (title: string, content: string, userId: number, categories?: { id: number }[], countries?: { id: number }[]) => {
-    console.log(title, content);
     const newPost = await prisma.post.create({
         data: {
             title: title,
