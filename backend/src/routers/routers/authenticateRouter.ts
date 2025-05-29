@@ -25,9 +25,9 @@ export const authenticateRouter = router({
         }),
     getUser: publicProcedure
         .query(async ({ ctx }) => {
-            return {
+            return ctx.user ? {
                 id: ctx.user?.id,
                 username: ctx.user?.username
-            };
+            } : null;
         })
 });

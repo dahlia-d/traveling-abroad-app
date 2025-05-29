@@ -7,12 +7,12 @@ import { Error } from "@/components/ui/error";
 export const CheckpointsRealTime = () => {
     const [realTimeTraffic, setRealTimeTraffic] = useState<number | null>(null);
 
-    const checkpoints = trpc.checkpoints.getCheckpoits.useQuery();
+    const checkpoints = trpc.checkpoints.getCheckpoints.useQuery();
 
     const checkpointsOptions = checkpoints.data?.map((checkpoint) => {
         return {
             value: { id: checkpoint.id, name: checkpoint.name },
-            label: checkpoint.name,
+            label: `${checkpoint.name} (${checkpoint.fromCountry} -> ${checkpoint.toCountry})`,
         };
     });
     const realTimeTrafficMutation =
@@ -45,7 +45,7 @@ export const CheckpointsRealTime = () => {
     return (
         <div className="flex w-96 flex-col items-center gap-3 rounded-sm border-2 border-black bg-white p-10 drop-shadow">
             <Select
-                className="max-w-40"
+                className="min-w-60"
                 classNamePrefix="select"
                 options={checkpointsOptions}
                 onChange={(value) => {
@@ -66,8 +66,7 @@ export const CheckpointsRealTime = () => {
                 <Loading />
             ) : realTimeTraffic ? (
                 <div className="text-2xl">
-                    Waiting time in traffic: {Math.round(realTimeTraffic / 60)}{" "}
-                    min
+                    Waiting time: {Math.round(realTimeTraffic / 60)} min
                 </div>
             ) : (
                 <h2 className="text-2xl">Select checkpoint</h2>

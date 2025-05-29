@@ -1,11 +1,13 @@
 import { trpc } from "../api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Options } from "@/components/ui/options";
 import { Loading } from "@/components/ui/loading";
 import moment from "moment";
-import { Button } from "@/components/ui/button";
+import { useInView } from "react-intersection-observer";
+//import { Button } from "@/components/ui/button";
 
 export const Posts = () => {
     const [categories, setCategories] = useState<{ id: number }[]>([]);
@@ -32,6 +34,14 @@ export const Posts = () => {
         );
     }
 
+    const { ref, inView } = useInView();
+
+    useEffect(() => {
+        if (inView) {
+            posts.fetchNextPage();
+        }
+    }, [posts.fetchNextPage, inView]);
+
     if (filters.isLoading) {
         return <Loading />;
     }
@@ -39,10 +49,12 @@ export const Posts = () => {
     return (
         <div className="flex min-h-[calc(100vh-5rem)] w-full max-w-xl flex-1 flex-col gap-4 pt-6">
             <div className="flex place-items-center items-center justify-center gap-3">
+                <div>Countries: </div>
                 <Options
                     options={filters.data?.countries ?? []}
                     setOptions={setCountries}
                 />
+                <div>Countries: </div>
                 <Options
                     options={filters.data?.categories ?? []}
                     setOptions={setCategories}
@@ -53,11 +65,11 @@ export const Posts = () => {
             ) : (
                 <>
                     <div className="flex flex-col gap-4 pb-4">
-                        {posts.data?.pages?.map((group) => (
-                            <>
+                        {posts.data?.pages?.map((group, groupIndex) => (
+                            <React.Fragment key={groupIndex}>
                                 {group.posts.map((post) => (
                                     <Link to={`/post/${post.id}`} key={post.id}>
-                                        <Card key={post.id}>
+                                        <Card>
                                             <CardContent className="flex w-full gap-4 pb-2 pl-0 pr-0 pt-2">
                                                 <div className="w-full">
                                                     <p className="pb-2 pl-4 text-sm text-secondary-foreground">
@@ -96,9 +108,9 @@ export const Posts = () => {
                                         </Card>
                                     </Link>
                                 ))}
-                            </>
+                            </React.Fragment>
                         ))}
-                        {posts.hasNextPage && (
+                        {/*posts.hasNextPage && (
                             <Button
                                 onClick={() => {
                                     posts.fetchNextPage();
@@ -107,7 +119,8 @@ export const Posts = () => {
                             >
                                 Show more
                             </Button>
-                        )}
+                        )*/}
+                        <div ref={ref}>{posts.hasNextPage && "Loading..."}</div>
                     </div>
                 </>
             )}

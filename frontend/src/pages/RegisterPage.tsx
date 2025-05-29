@@ -38,9 +38,11 @@ export const Register = () => {
     const [password, setPassword] = useState("");
     const [passwordVisibility, setPasswordVisibility] = useState(false);
     const navigate = useNavigate();
+    const apiCtx = trpc.useUtils();
 
     const login = trpc.authenticate.login.useMutation({
         onSuccess: () => {
+            apiCtx.authenticate.getUser.invalidate();
             navigate("/");
         },
     });

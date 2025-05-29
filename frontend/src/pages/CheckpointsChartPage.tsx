@@ -37,11 +37,11 @@ export const Chart = () => {
         data: checkpoints,
         isError,
         isPending,
-    } = trpc.checkpoints.getCheckpoits.useQuery();
+    } = trpc.checkpoints.getCheckpoints.useQuery();
     const checkpointsOptions = checkpoints?.map((checkpoint) => {
         return {
             value: { id: checkpoint.id, name: checkpoint.name },
-            label: checkpoint.name,
+            label: `${checkpoint.name} (${checkpoint.fromCountry} -> ${checkpoint.toCountry})`,
         };
     });
     const [fromDate, setFromDate] = useState<Date | undefined>(() => {

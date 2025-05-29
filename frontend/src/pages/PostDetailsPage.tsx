@@ -13,11 +13,11 @@ export const PostDetails = () => {
         : null;
 
     if (!post) {
-        return <text>Post not found!</text>;
+        return <div>Post not found!</div>;
     }
 
     return (
-        <div className="flex min-h-[calc(100vh-5rem)] w-96 flex-col border-secondary pt-6 text-black">
+        <div className="flex min-h-[calc(100vh-5rem)] max-w-3xl flex-col border-secondary pt-6 text-black">
             <Card>
                 <CardContent className="p-4">
                     <h1 className="pb-0 text-3xl font-semibold">
