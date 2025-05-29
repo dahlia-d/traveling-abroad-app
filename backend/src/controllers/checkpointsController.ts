@@ -61,6 +61,24 @@ export const getCheckpointTrafficData = async (id: number, fromDate: Date, toDat
     return trafficData;
 }
 
-export const getCheckpoits = async () => {
-    return await prisma.checkpoint.findMany();
+export const getCheckpoints = async () => {
+    const checkpoints = await prisma.checkpoint.findMany();
+    const checkpointsResult: { id: number, name: string, fromCountry: string | undefined, toCountry: string | undefined }[] = [];
+    for (let i = 0; i < checkpoints.length; i++) {
+        checkpointsResult[i] = {
+            id: checkpoints[i].id,
+            name: checkpoints[i].name, 
+            fromCountry: (await prisma.country.findUnique({
+                where: {
+                    id: checkpoints[i].fromCountryId
+                }
+            }))?.name, 
+            toCountry: (await prisma.country.findUnique({
+                where: {
+                    id: checkpoints[i].toCountryId
+                }
+            }))?.name
+        }
+    }
+    return checkpointsResult;
 }

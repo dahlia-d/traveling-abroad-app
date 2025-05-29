@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 
 export const verifyJWT = async (req: Request) => {
@@ -9,7 +9,7 @@ export const verifyJWT = async (req: Request) => {
 
     const token: string = cookies.jwt_access;
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
-    const payload = decoded as { username: string };
-    return payload.username;
+    const payload = decoded as jwt.JwtPayload;
+    return payload.subject;
 }
 

@@ -1,4 +1,4 @@
-import { fetchTrafficData, getCheckpointTrafficData, getCheckpoits, fetchCheckpointCoordinates } from "../../controllers/checkpointsController";
+import { fetchTrafficData, getCheckpointTrafficData, getCheckpoints, fetchCheckpointCoordinates } from "../../controllers/checkpointsController";
 import { publicProcedure, router } from "../trpc";
 import { z } from 'zod';
 
@@ -15,9 +15,9 @@ export const checkpointsRouter = router({
         .query(async ({ input }) => {
             return await getCheckpointTrafficData(input.checkpointId, new Date(input.fromDate), new Date(input.toDate));
         }),
-    getCheckpoits: publicProcedure
+    getCheckpoints: publicProcedure
         .query(async () => {
-            return await getCheckpoits();
+            return await getCheckpoints();
         }),
     getCheckpointRealTimeTraffic: publicProcedure
         .input(

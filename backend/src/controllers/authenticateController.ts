@@ -22,13 +22,13 @@ export const authenticateUser = async (name: string, password: string, res: Resp
     }
 
     const accessToken = jwt.sign(
-        { "username": user.username },
+        { subject: user.id.toString() },
         process.env.ACCESS_TOKEN_SECRET!,
         { expiresIn: '2h' }
     );
 
     const refreshToken = jwt.sign(
-        { "username": user.username },
+        { subject: user.id.toString() },
         process.env.REFRESH_TOKEN_SECRET!,
         { expiresIn: '60d' }
     );

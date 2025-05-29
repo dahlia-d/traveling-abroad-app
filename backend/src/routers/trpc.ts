@@ -10,12 +10,12 @@ export const createContext = async ({
 	req,
 	res,
 }: trpcExpress.CreateExpressContextOptions) => {
-	const username = await verifyJWT(req);
+	const userId = await verifyJWT(req);
 	let user: User | null = null;
-	if (username) {
+	if (userId) {
 		user = await prisma.user.findUnique({
 			where: {
-				username: username
+				id: parseInt(userId)
 			}
 		});
 	}

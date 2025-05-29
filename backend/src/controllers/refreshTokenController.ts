@@ -28,7 +28,7 @@ export const refreshToken = async (req: Request, res: Response) => {
         (err, docoded) => {
             if (err) new TRPCError({ code: 'FORBIDDEN', message: 'Invalid token' });
             const accessToken = jwt.sign(
-                { 'username': user.username },
+                { subject: user.id.toString() },
                 process.env.ACCESS_TOKEN_SECRET!,
                 { expiresIn: '2h' }
             );
